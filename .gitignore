@@ -9,3 +9,21 @@ build/
 # Env
 .env
 
+=======
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Virtual env
+venv/
+venv_new/
+
+# OS
+.DS_Store
+
+# Personal files
+my_resume.txt
+test_*.py
