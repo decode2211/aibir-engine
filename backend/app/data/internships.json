@@ -1,0 +1,16 @@
+[
+  {
+    "id": "int_1",
+    "title": "Software Engineering Intern",
+    "company": "ExampleCorp",
+    "location": "Bangalore",
+    "skills": ["python", "fastapi"]
+  },
+  {
+    "id": "int_2",
+    "title": "Data Science Intern",
+    "company": "DataInc",
+    "location": "Hyderabad",
+    "skills": ["pandas", "numpy"]
+  }
+]
