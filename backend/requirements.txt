@@ -4,4 +4,12 @@ python-multipart
 pydantic
 PyPDF2
 python-dotenv
+groq
+scrapy
+selenium
+requests
+beautifulsoup4
+lxml
+apscheduler
+
 
