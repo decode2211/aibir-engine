@@ -4,6 +4,12 @@ python-multipart
 pydantic
 PyPDF2
 python-dotenv
-google-generativeai
+groq
+scrapy
+selenium
+requests
+beautifulsoup4
+lxml
+apscheduler
 
 

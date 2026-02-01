@@ -2,9 +2,9 @@ from fastapi import APIRouter, UploadFile, Form, File
 from app.services.resume_parser import extract_text_from_pdf
 from app.services.data_store import create_student
 
-router = APIRouter(prefix="/upload-resume")
+router = APIRouter(prefix="/resume")
 
-@router.post("")
+@router.post("/upload")
 async def upload_resume(
     resume: UploadFile = File(...),
     student_name: str = Form(...),
