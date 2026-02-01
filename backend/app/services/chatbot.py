@@ -3,12 +3,21 @@ Real-time AI chatbot for student career guidance
 Uses Google Gemini API for intelligent responses
 """
 
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+    GENAI_AVAILABLE = True
+except ImportError:
+    GENAI_AVAILABLE = False
+
 from app.config import GEMINI_API_KEY
 
 # Configure Gemini
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+if GENAI_AVAILABLE and GEMINI_API_KEY:
+    try:
+        genai.configure(api_key=GEMINI_API_KEY)
+    except Exception as e:
+        print(f"Warning: Could not configure Gemini: {e}")
+        GENAI_AVAILABLE = False
 
 def get_chatbot_response(user_message: str, chat_history: list = None) -> str:
     """
@@ -21,6 +30,9 @@ def get_chatbot_response(user_message: str, chat_history: list = None) -> str:
     Returns:
         AI-generated response
     """
+    
+    if not GENAI_AVAILABLE:
+        return "⚠️ Chatbot library not available. Please install: pip install google-generativeai"
     
     if not GEMINI_API_KEY:
         return "⚠️ Chatbot is not configured. Please add GEMINI_API_KEY to backend/.env file."
@@ -37,8 +49,8 @@ Your role is to:
 
 Keep responses concise (2-4 paragraphs max) but helpful. Use emojis sparingly for a friendly tone."""
 
-        # Initialize model
-        model = genai.GenerativeModel('gemini-pro')
+        # Initialize model (using gemini-2.0-flash - faster and free)
+        model = genai.GenerativeModel('gemini-2.0-flash')
         
         # Build conversation context
         conversation = []
@@ -49,11 +61,31 @@ Keep responses concise (2-4 paragraphs max) but helpful. Use emojis sparingly fo
         # Create full prompt
         full_prompt = f"{system_context}\n\nStudent Question: {user_message}\n\nYour Response:"
         
-        # Get response
-        response = model.generate_content(full_prompt)
+        # Get response with safety settings
+        response = model.generate_content(
+            full_prompt,
+            generation_config={
+                'temperature': 0.7,
+                'max_output_tokens': 500,
+            }
+        )
+        
+        # Check if response was blocked
+        if not response.text:
+            return "⚠️ I couldn't generate a response. Please try rephrasing your question."
         
         return response.text
         
     except Exception as e:
-        print(f"Chatbot error: {e}")
-        return f"⚠️ Sorry, I encountered an error. Please try again or rephrase your question."
+        error_msg = str(e)
+        print(f"Chatbot error: {error_msg}")
+        
+        # Handle specific errors
+        if "API key" in error_msg or "invalid" in error_msg.lower():
+            return "⚠️ API key issue. Please check your GEMINI_API_KEY in backend/.env"
+        elif "quota" in error_msg.lower():
+            return "⚠️ API quota exceeded. Please try again later."
+        elif "blocked" in error_msg.lower():
+            return "⚠️ Content was blocked by safety filters. Please rephrase your question."
+        else:
+            return "⚠️ Sorry, I encountered an error. Please try again or rephrase your question."
