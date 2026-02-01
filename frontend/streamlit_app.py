@@ -213,10 +213,86 @@ with col2:
     else:
         st.info("📤 Upload your resume on the left to see personalized recommendations")
 
+# AI Chatbot Section
+st.divider()
+st.header("💬 Career Advisor Chatbot")
+st.caption("Ask anything about internships, careers, skills, or job search!")
+
+# Initialize chat history
+if "chat_messages" not in st.session_state:
+    st.session_state.chat_messages = []
+
+# Display chat messages
+chat_container = st.container()
+with chat_container:
+    for message in st.session_state.chat_messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+# Chat input
+if prompt := st.chat_input("Ask me anything about careers, internships, or skills..."):
+    # Add user message to chat
+    st.session_state.chat_messages.append({"role": "user", "content": prompt})
+    
+    # Display user message
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    
+    # Get bot response
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            try:
+                response = requests.post(
+                    f"{BACKEND_URL}/chat",
+                    json={
+                        "message": prompt,
+                        "history": st.session_state.chat_messages[:-1]  # Exclude current message
+                    },
+                    timeout=30
+                )
+                
+                if response.status_code == 200:
+                    bot_response = response.json()["response"]
+                    st.markdown(bot_response)
+                    
+                    # Add bot response to chat history
+                    st.session_state.chat_messages.append({
+                        "role": "assistant",
+                        "content": bot_response
+                    })
+                else:
+                    error_msg = "⚠️ Sorry, I couldn't process that. Please try again."
+                    st.error(error_msg)
+                    st.session_state.chat_messages.append({
+                        "role": "assistant",
+                        "content": error_msg
+                    })
+                    
+            except requests.exceptions.ConnectionError:
+                error_msg = "⚠️ Cannot connect to chatbot. Make sure the backend is running."
+                st.error(error_msg)
+                st.session_state.chat_messages.append({
+                    "role": "assistant",
+                    "content": error_msg
+                })
+            except Exception as e:
+                error_msg = f"⚠️ Error: {str(e)}"
+                st.error(error_msg)
+                st.session_state.chat_messages.append({
+                    "role": "assistant",
+                    "content": error_msg
+                })
+
+# Clear chat button
+if st.session_state.chat_messages:
+    if st.button("🗑️ Clear Chat History"):
+        st.session_state.chat_messages = []
+        st.rerun()
+
 # Footer
 st.divider()
 st.markdown("""
 <div style='text-align: center; color: #999; padding: 20px;'>
-    <p><strong>LinkedIn Internship Finder</strong> - Find real-time LinkedIn opportunities | Powered by FastAPI</p>
+    <p><strong>LinkedIn Internship Finder</strong> - Find real-time LinkedIn opportunities | Powered by FastAPI & Gemini AI</p>
 </div>
 """, unsafe_allow_html=True)
